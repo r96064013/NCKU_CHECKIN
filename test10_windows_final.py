@@ -14,13 +14,22 @@ import requests
     
 #headers = {"Authorization": "Bearer " + "m5Uja5HHKHXbG7yKdCacXgbLHcBAQ5SJ6KyTQv5A1YC","Content-Type": "application/x-www-form-urlencoded"}
 
-check_in_bottom = "//*[@id='sitemain']/div[2]/div[3]/div[1]/div[3]/div[4]/div/button[1]" 
+#check_in_bottom = "//*[@id='sitemain']/div[2]/div[3]/div[1]/div[3]/div[4]/div/button[1]"
 
-check_out_bottom = "//*[@id='sitemain']/div[2]/div[3]/div[1]/div[3]/div[4]/div/button[2]"
+#check_out_bottom = "//*[@id='sitemain']/div[2]/div[3]/div[1]/div[3]/div[4]/div/button[2]"
 
-view_list_bottom = "//*[@id='sitemain']/div[2]/div[3]/div[1]/div[3]/div[5]/div/button[1]"
+#view_list_bottom = "//*[@id='sitemain']/div[2]/div[3]/div[1]/div[3]/div[5]/div/button[1]"
 
-sign_out_bottom = "//*[@id='sitemain']/div[2]/div[3]/div[1]/div[3]/div[5]/div/button[2]"
+#sign_out_bottom = "//*[@id='sitemain']/div[2]/div[3]/div[1]/div[3]/div[5]/div/button[2]"
+
+check_in_bottom = '//button[normalize-space()="上班簽到"]'
+
+check_out_bottom = '//button[normalize-space()="下班簽退"]'
+
+view_list_bottom = '//button[normalize-space()="查看本日刷卡紀錄"]'
+
+sign_out_bottom = '//button[normalize-space()="重新輸入"]'
+
     
 def main():
     try:
