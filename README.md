@@ -1,5 +1,20 @@
 # NCKU_CHECKIN
 
+[TOC]
+
+###### tags: `自動簽到程式` `成功大學` `打卡`
+---
+
+## 注意事項：
+* ==本程式為學術交流用途，程式相關問題而導致沒簽到請自行負責==
+* 下載後請將檔案解壓縮，並且先開啟"請設定帳號密碼.csv"進行設定(設定流程在後面)
+* 系統執行檔案為"test11_windows_final.exe"，本程式限用window系統
+* 系統啟動後不要關閉Dos(黑色)視窗，縮小即可
+* 系統開啟後如果發現瀏覽無法正常開啟，請依照"Chrome瀏覽器無法開啟"章節解決問題
+* 本程式簽到時間可手動設定，請見"打卡時間設定"章節
+* 本程式簽退時間為簽到時間 + 1~15分鐘(隨機)，以防止自動打卡被抓
+* 簽到瀏覽器頁面請勿手動關閉，當簽到或簽退完成後程式將自動關閉頁面
+---
 ## 帳號密碼設定流程(一次性設定)：
 1.	開啟”請設定帳號密碼.csv”
 ![](https://i.imgur.com/PZG2DQT.png)
@@ -7,6 +22,8 @@
 ![](https://i.imgur.com/tVS0rfS.png)
 3.	開啟程式 testX_windows_final.exe
 ![](https://i.imgur.com/EBFZomj.png)
+4. 系統執行畫面
+![](https://i.imgur.com/VhG4Rgr.png)
 ---
 ## LINE通知設定流程(一次性設定)：
 1. 請點連結並登入 https://notify-bot.line.me/my/
@@ -32,7 +49,8 @@
 
 ==註記：設定成功，系統開啟時LINE會推播"系統啟動...."==
 
-## 打卡時間設定：
+---
+## 簽到時間設定：
 1.	開啟”請設定帳號密碼.csv”
 ![](https://i.imgur.com/PZG2DQT.png)
 2. 請填入打卡的開始時間與結束時間(切記不可相反)
@@ -56,4 +74,10 @@ ChromeDriver不支援Chrome網頁瀏覽器的版本時，會引起Chrome閃退�
     * ![](https://i.imgur.com/Eueqcw1.png)
 3.	將ChromeDriver移至專案目錄下，避免程式找不到ChromeDriver
 	![](https://i.imgur.com/bKBEh2J.png)
+
+---
+
+## 誌謝
+* 謝謝阿蓉提供帳號密碼讓我測試，在這過程中好幾次因為程式BUG而沒有打到卡，在這邊要跟你說聲抱歉QAQ
+* 我原本要做MAC版本的，但是跟學妹吵架(後來學妹不借我MAC了)所以沒有完成編譯成MAC的執行檔，不過還是謝謝學妹
 
