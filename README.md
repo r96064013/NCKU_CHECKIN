@@ -18,6 +18,7 @@
 * 如遇到六日補假時，請自行手動打卡
 * 遇到國定假日或是連假時請下班後關閉程式，以免誤打卡
 ---
+
 ## 帳號密碼設定流程(一次性設定)：
 1.	開啟”請設定帳號密碼.csv”
 ![](https://i.imgur.com/PZG2DQT.png)
@@ -58,6 +59,14 @@
 ![](https://i.imgur.com/PZG2DQT.png)
 2. 請填入打卡的開始時間與結束時間(切記不可相反)
 ![](https://i.imgur.com/kTE5onv.png)
+
+---
+
+## 捷徑設定：
+1. 對執行檔點右鍵，點選"釘選到開始畫面"
+![](https://i.imgur.com/7OQoMLw.png)
+2. 未來如果要開啟程式，按開始就可以看到(沒有的話請滑動滑鼠滾輪)
+![](https://i.imgur.com/WhiG6mS.png)
 
 ---
 ## Chrome瀏覽器無法開啟
