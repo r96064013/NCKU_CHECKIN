@@ -20,6 +20,11 @@ check_out_botton = '//button[normalize-space()="下班簽退"]'
 view_list_botton = '//button[normalize-space()="查看本日刷卡紀錄"]'
 sign_out_botton = '//button[normalize-space()="重新輸入"]'
 
+def write_log_file(string):
+    f = open("log_file.txt",'a')
+    f.write(datetime.now().strftime('%Y-%m-%d(%w) %H:%M:%S') + " " + string + " " + '\n')
+    f.close()
+
 def job(set_time_minute):
     
   time_set = float(set_time_minute) * 60
@@ -41,6 +46,7 @@ def job(set_time_minute):
 def read_setup_file():
     try:
         with open('請設定帳號密碼.csv', newline='') as csvfile:
+            write_log_file("read_setup_file correct")
             rows = csv.reader(csvfile)
             count=0
             for row in rows:
@@ -69,6 +75,7 @@ def read_setup_file():
         open('請設定帳號密碼.csv', newline='').close()
     except:
         print("沒有設定檔，採手動輸入帳號密碼...")    
+        write_log_file("read_setup_file error")
         usrid =""
         password=""   
         location="NCKU"
@@ -80,10 +87,10 @@ def read_setup_file():
         set_minutes_end = 17
         return usrid, password, location, LINE, NAME, set_hours_st, set_minutes_st, set_hours_end, set_minutes_end
         
-def survey_account_password_input(driver, usrid, password):
-    user_id = driver.find_element_by_xpath("//*[@id='user_id']")
+def survey_account_password_input(driver2, usrid, password):
+    user_id = driver2.find_element_by_xpath("//*[@id='user_id']")
     user_id.send_keys(str(usrid))
-    user_id = driver.find_element_by_xpath("//*[@id='passwd']")
+    user_id = driver2.find_element_by_xpath("//*[@id='passwd']")
     user_id.send_keys(str(password))
     
 def checkin_account_password_input(driver, usrid, password):
@@ -93,11 +100,13 @@ def checkin_account_password_input(driver, usrid, password):
     user_id.send_keys(str(password))
 
 def check_work_list(driver):
+    write_log_file("check_work_list:")
     sleep(2)
     #print("..............")    
     #table = driver.find_element_by_id('checkinList')
     trlist = driver.find_elements_by_tag_name('tr')
     print("簽到次數: ",len(trlist)-4)
+    write_log_file("簽到次數: " + str(len(trlist)-4))
     #text = str("簽到次數: "+ str(len(trlist)-4))
     #params = {"message": text}
     #requests.post("https://notify-api.line.me/api/notify",headers=headers, params=params)
@@ -124,7 +133,7 @@ def check_work_list(driver):
                     #check_list.clear()     
                     check_list = []
                 count_1 = count_1 + 1
-            
+    write_log_file("check_list_arry: " + str(check_list_arry))        
     return check_list_arry
 
 def open_browser():
@@ -139,6 +148,113 @@ def open_browser():
     return driver
     sleep(1)
 
+def open_browser_questionnaire():
+    #print("----runing----")              
+    driver2 = webdriver.Chrome()
+    #driver.maximize_window()
+    # 改變視窗大小為最小化 (因為沒有可見視窗，所以長寬為關閉前大小)
+    #driver.minimize_window()
+    #print ("最小化：(" + str(driver.get_window_size().get("width")) + "," + str(driver.get_window_size().get("height")) + ")")
+    #driver.implicitly_wait(1)
+    driver2.get('https://app.pers.ncku.edu.tw/ncov/index.php?auth')
+    return driver2
+    sleep(1)
+
+def questionnaire(driver2):
+    try:
+        print("登入今日健康資訊視窗編號.... ") 
+        write_log_file("登入今日健康資訊視窗編號 correct" )
+        survey_account_password_input(driver2, usrid, password)
+    except Exception as e:
+        write_log_file("登入今日健康資訊視窗編號 error" )
+        pass
+        
+    try:
+        submit_botton = driver2.find_element_by_xpath("//*[@id='submit_by_acpw']")
+        submit_botton.click()
+        write_log_file("新型冠狀病毒（COVID-19）資訊平台專區登入button correct " )
+    except Exception as e:
+        line_broadcast("新型冠狀病毒（COVID-19）資訊平台專區登入button有誤", LINE)
+        write_log_file("新型冠狀病毒（COVID-19）資訊平台專區登入button error " )
+
+    sleep(2)
+    b = driver2.find_elements_by_xpath("//*[contains(text(), '回報今日健康資訊')]")
+    if len(b) > 0:
+        write_log_file("len(b)>0 正在填寫健康聲明書........." )
+        print("正在填寫健康聲明書.........")
+        #text = "正在填寫健康聲明書"
+        #line_broadcast(text, LINE)
+        flag_tmp = 0
+        answers = driver2.find_elements_by_css_selector("div[class='form-control2 input-group']")
+        for answer in answers:
+            try:
+                write_log_file(" for answer in answers:")
+                #print(answer)
+                write_log_file("answer" + str(answer) )
+                ans = answer.find_elements_by_css_selector('label')
+                #li = random.choice(ans)
+              
+                if(len(ans)>10):
+                    write_log_file("len(ans)>10" )
+                    li = ans[15]
+                    li.click()
+                    time.sleep(0.1)
+                else:
+                    write_log_file("len(ans) else" )
+                    li = ans[0]
+                    li.click()
+                    time.sleep(0.5)                 
+                #eee = eee + 300
+                #$driver2.execute_script(c+str(eee)+d)
+            except Exception as e:
+                #print("click error: " ,e)
+                write_log_file(" for answer in answers: error" )
+                pass
+            try:
+               if(len(ans)==2 and flag_tmp==0): 
+                    num_tmp = driver2.find_element_by_xpath("//*[@id='temper_data']")
+                    num_tmp.send_keys("36." + str(random.randint(0,9)))
+                    flag_tmp=1
+            except Exception as c:
+               #print("send_keys error: ",c)
+               write_log_file(" driver2.find_element_by_xpath " + "//*[@id='temper_data']" + "error")
+               pass
+            try:
+                text = answer.find_element_by_css_selector("input[name='stay_1_other'][type='text']")
+                text.send_keys(location)
+                write_log_file(" answer.find_element_by_css_selector " + str(location))
+            except Exception as c:
+                #print("send_keys error: ",c)
+                write_log_file(" answer.find_element_by_css_selector " + str(location) + "error")
+                pass
+            
+            
+            
+        try:
+            sleep(0.5)
+            submit_botton = driver2.find_element_by_xpath("//*[@id='arch_grid']/div[3]/form/div/div/div[3]/button[1]")
+            submit_botton.click()
+            write_log_file("健康聲明填寫完畢")
+            text = "健康聲明填寫完畢"
+            line_broadcast(text, LINE)
+            print("健康聲明填寫完畢")
+            sleep(0.5)
+        except:
+            text = "健康聲明填寫異常"
+            line_broadcast(text, LINE)
+            write_log_file("健康聲明填寫異常")
+        try:
+            time.sleep(1)
+            submit_botton = driver2.find_element_by_xpath("//*[@id='msg']/div[2]/div/div[3]/button")
+            submit_botton.click()
+            write_log_file("//*[@id='msg']/div[2]/div/div[3]/button correct")
+        except:
+            text = "存檔成功沒按掉"
+            line_broadcast(text, LINE) 
+            write_log_file("//*[@id='msg']/div[2]/div/div[3]/button 存檔成功沒按掉")
+        sleep(2)
+        driver2.quit()
+    
 def line_broadcast(text, LINE):
     headers = {"Authorization": "Bearer " + LINE ,"Content-Type": "application/x-www-form-urlencoded"}
     params = {"message": text}
@@ -147,93 +263,118 @@ def line_broadcast(text, LINE):
 def check_in_procedure(usrid, password, LINE, NAME):
     
     #print(datetime.now().strftime('%H:%M:%S'),"----1----") 
+
     
     driver = open_browser()
     checkin_account_password_input(driver, usrid, password) 
     sleep(1)
     
     now_handle = driver.current_window_handle #主視窗編號
-    print("簽到視窗編號 : " , now_handle)
+    write_log_file("簽到視窗編號(主視窗編號) : " + str(now_handle))
+    print("簽到視窗編號(主視窗編號) : " , now_handle)
     #text = "主視窗編號:" + now_handle
     #line_broadcast(text, LINE)
     
     try:
         submit_botton = driver.find_element_by_xpath(check_in_botton)
         submit_botton.click()
+        write_log_file("submit_botton '上班簽到' correct")
     except Exception as e:
         text = "簽到失敗"
         line_broadcast(text, LINE)
-        print(e," line:281")
-    
+        write_log_file("submit_botton '上班簽到' error")
+    '''
     sleep(2)    
     try:
         alert = driver.switch_to.alert #切換到alert
+        write_log_file("driver.switch_to.alert correct01")
         if(alert.text == "遲到!您最晚的上班的時間為 08:30"):
             print('alert text : ' + alert.text) #列印alert的文字
             alert.accept() #點選alert的【確認】按鈕  
-    except:                    
+    except:     
+        write_log_file("driver.switch_to.alert error01")               
         pass
-    sleep(0.5)
+    sleep(1)
     try:
         alert = driver.switch_to.alert #切換到alert
+        write_log_file("driver.switch_to.alert correct02")
         if(alert.text == "【提醒您】自即日起，每日須至本校新型冠狀病毒(COVID-19)資訊平台專區登錄健康資訊，或掃描足跡 QR Code 亦可登錄相關資訊。"):
             print('alert text : ' + alert.text) #列印alert的文字
             #text = str('alert text : ' + alert.text)
             #line_broadcast(text, LINE)
             alert.accept() #點選alert的【確認】按鈕  
-    except:                    
+    except: 
+        write_log_file("driver.switch_to.alert error02")                     
         pass
-    sleep(0.5)
+    sleep(1)
     try:
         alert = driver.switch_to.alert #切換到alert
+        write_log_file("driver.switch_to.alert correct03")
         if(alert.text == "遲到!您最晚的上班的時間為 08:30"):
             #print('alert text : ' + alert.text) #列印alert的文字
             alert.accept() #點選alert的【確認】按鈕  
-    except:                    
+    except: 
+        write_log_file("driver.switch_to.alert error03")                        
         pass
     sleep(2)
     #driver1.get('https://app.pers.ncku.edu.tw/ncov/index.php?auth')
     all_handles = driver.window_handles #全部視窗控制權
+    write_log_file("全部視窗控制權")   
+    write_log_file(str(all_handles))
     #driver.switch_to_window(now_handle)
     for handle in all_handles:  
         if handle != now_handle:     
             #輸出待選擇的視窗控制代碼  
-            print("今日健康資訊視窗編號 : ",handle) #  
+            print("今日健康資訊視窗編號 : ",handle) #
+            write_log_file("今日健康資訊視窗編號")   
+            write_log_file(str(handle))   
             #text = "今日健康資訊視窗編號:" + handle
             #line_broadcast(text, LINE)
-            driver.switch_to_window(handle)  
-            time.sleep(1)  
-            
+            try:
+                driver.switch_to_window(handle)  
+                time.sleep(1)  
+                write_log_file("switch_to_window(handle) correct" )
+            except:
+                write_log_file("switch_to_window(handle) error" )
             try:
                 print("登入今日健康資訊視窗編號.... ") 
+                write_log_file("登入今日健康資訊視窗編號 correct" )
                 survey_account_password_input(driver, usrid, password)
             except Exception as e:
+                write_log_file("登入今日健康資訊視窗編號 error" )
                 pass
                 
             try:
                 submit_botton = driver.find_element_by_xpath("//*[@id='submit_by_acpw']")
                 submit_botton.click()
+                write_log_file("新型冠狀病毒（COVID-19）資訊平台專區登入button correct " )
             except Exception as e:
                 line_broadcast("新型冠狀病毒（COVID-19）資訊平台專區登入button有誤", LINE)
+                write_log_file("新型冠狀病毒（COVID-19）資訊平台專區登入button error " )
     
             sleep(2)
             b = driver.find_elements_by_xpath("//*[contains(text(), '回報今日健康資訊')]")
             if len(b) > 0:
+                write_log_file("len(b)>0 正在填寫健康聲明書........." )
                 print("正在填寫健康聲明書.........")
                 #text = "正在填寫健康聲明書"
                 #line_broadcast(text, LINE)
                 answers = driver.find_elements_by_css_selector("div[class='form-control2 input-group']")
                 for answer in answers:
                     try:
+                        write_log_file(" for answer in answers:")
                         #print(answer)
+                        write_log_file("answer" + str(answer) )
                         ans = answer.find_elements_by_css_selector('label')
                         #li = random.choice(ans)
                       
                         if(len(ans)>10):
+                            write_log_file("len(ans)>10" )
                             li = ans[15]
                             li.click()
                             time.sleep(0.1)
                         else:
+                            write_log_file("len(ans) else" )
                             li = ans[0]
                             li.click()
                             time.sleep(0.1)
@@ -241,16 +382,20 @@ def check_in_procedure(usrid, password, LINE, NAME):
                         #$driver.execute_script(c+str(eee)+d)
                     except Exception as e:
                         #print("click error: " ,e)
+                        write_log_file(" for answer in answers: error" )
                         pass
                     try:
                         text = answer.find_element_by_css_selector("input[name='stay_1_other'][type='text']")
                         text.send_keys(location)
+                        write_log_file(" answer.find_element_by_css_selector " + str(location))
                     except Exception as c:
                         #print("send_keys error: ",c)
+                        write_log_file(" answer.find_element_by_css_selector " + str(location) + "error")
                         pass
                 try:
                     submit_botton = driver.find_element_by_xpath("//*[@id='arch_grid']/div[3]/form/div/div/div[3]/button[1]")
                     submit_botton.click()
+                    write_log_file("健康聲明填寫完畢")
                     text = "健康聲明填寫完畢"
                     line_broadcast(text, LINE)
                     print("健康聲明填寫完畢")
@@ -258,26 +403,33 @@ def check_in_procedure(usrid, password, LINE, NAME):
                 except:
                     text = "健康聲明填寫異常"
                     line_broadcast(text, LINE)
+                    write_log_file("健康聲明填寫異常")
                 try:
                     time.sleep(1)
                     submit_botton = driver.find_element_by_xpath("//*[@id='msg']/div[2]/div/div[3]/button")
                     submit_botton.click()
+                    write_log_file("//*[@id='msg']/div[2]/div/div[3]/button correct")
                 except:
                     text = "存檔成功沒按掉"
-                    line_broadcast(text, LINE)    
+                    line_broadcast(text, LINE) 
+                    write_log_file("//*[@id='msg']/div[2]/div/div[3]/button 存檔成功沒按掉")
                 try:
                     driver.switch_to_window(now_handle)  
+                    write_log_file("切回簽到視窗提供觀看..")
                     #print("切回簽到視窗提供觀看..")
                 except:
                     text = "視窗沒切回簽到"
-                    line_broadcast(text, LINE)                                                 
-        
+                    line_broadcast(text, LINE)   
+                    write_log_file("視窗沒切回簽到")                                              
+    '''    
     sleep(1)
     try:
         submit_botton = driver.find_element_by_xpath(view_list_botton)
         submit_botton.click()
+        write_log_file("submit_botton 查看本日刷卡紀錄 correct")
     except Exception as e:
         print(e," line:287")
+        write_log_file("submit_botton 查看本日刷卡紀錄 error")
     sleep(1) 
     check_list_arry = check_work_list(driver)   
     for x in range(len(check_list_arry)):
@@ -287,6 +439,7 @@ def check_in_procedure(usrid, password, LINE, NAME):
            
             print()
             print("本日簽到資訊為:",str(check_list_arry[x]))
+            write_log_file("本日簽到資訊為" + str(check_list_arry[x]))
             print()
             driver.quit()
             return check_list_arry
@@ -303,12 +456,18 @@ def check_out_procedure(check_list_arry, check_out_number, usrid, password, LINE
         sleep_time = (random.randint(10,150))/10
         print("隨機等待: ", sleep_time, "分鐘，以防止被系統抓到自動打卡")
         job(sleep_time)
+        #**********************************#
+        driver2 = open_browser_questionnaire()
+        questionnaire(driver2)
+        #**********************************#
         driver = open_browser()
         checkin_account_password_input(driver, usrid, password)      
         try:
+            write_log_file("submit_botton '下班簽退' correct1")
             submit_botton = driver.find_element_by_xpath(check_out_botton)
             submit_botton.click()
         except:
+            write_log_file("submit_botton '下班簽退' error1")
             pass
     else:
         print("簽退時間未到！！ 等待時間到自動簽退下班............")
@@ -319,11 +478,20 @@ def check_out_procedure(check_list_arry, check_out_number, usrid, password, LINE
             if(check_out_time - check_in_time >= 540):
                 sleep_time = (random.randint(10,150))/10
                 print("隨機等待: ", sleep_time, "分鐘，以防止被系統抓到自動打卡")
+                write_log_file("隨機等待: " + str(sleep_time)+ "分鐘，以防止被系統抓到自動打卡")
                 job(sleep_time)
+                #**********************************#
+                driver2 = open_browser_questionnaire()
+                questionnaire(driver2)
+                #**********************************#
                 driver = open_browser()
                 checkin_account_password_input(driver, usrid, password)  
-                submit_botton = driver.find_element_by_xpath(check_out_botton)
-                submit_botton.click()
+                try:
+                    submit_botton = driver.find_element_by_xpath(check_out_botton)
+                    submit_botton.click()
+                    write_log_file("submit_botton '下班簽退' correct2")
+                except:
+                     write_log_file("submit_botton '下班簽退' error2")
                 break
             elif(datetime.now().strftime('%H:%M:%S') != change_time):
                 job(abs(check_out_time - (check_in_time + 540)))
@@ -334,6 +502,7 @@ def check_out_procedure(check_list_arry, check_out_number, usrid, password, LINE
                 '''   
     d = driver.find_elements_by_xpath("//*[contains(text(), '簽退不符合規定訊息')]")  
     if len(d) > 0:
+        write_log_file("len(d) > 0")
         time.sleep(2)
         try:
             sss = driver.find_elements_by_css_selector("div[class='ng-scope ng-binding']")
@@ -349,15 +518,19 @@ def check_out_procedure(check_list_arry, check_out_number, usrid, password, LINE
                     #anss[0].click()      
             submit_botton = driver.find_element_by_xpath("/html/body/div[1]/div[3]/span/button[1]")
             submit_botton.click()
+            write_log_file("submit_botton = driver.find_element_by_xpath correct")
         except:
+            write_log_file("submit_botton = driver.find_element_by_xpath error")
             pass
     
     sleep(2)
     try:
         submit_botton = driver.find_element_by_xpath(view_list_botton)
         submit_botton.click()
+        write_log_file("submit_botton 查看本日刷卡紀錄 correct")
     except Exception as e:
         print(e)
+        write_log_file("submit_botton 查看本日刷卡紀錄 error")
     
     sleep(1) 
     check_list_arry = check_work_list(driver)   
@@ -370,6 +543,7 @@ def check_out_procedure(check_list_arry, check_out_number, usrid, password, LINE
             print()
             print("本日簽退資訊為:",str(check_list_arry[len(check_list_arry)-x-1]))
             print()
+            write_log_file("本日簽退資訊為:"+str(check_list_arry[len(check_list_arry)-x-1]))
             check_out_information = str(check_list_arry[len(check_list_arry)-x-1])
             break
     try:
@@ -377,11 +551,14 @@ def check_out_procedure(check_list_arry, check_out_number, usrid, password, LINE
         #print("登出中.....")  
         submit_botton = driver.find_element_by_xpath(sign_out_botton)
         submit_botton.click()
+        write_log_file("登出中.....")  
     except:
-       pass
+        write_log_file("登出中..... error")  
+        pass
     #print("關閉視窗.....")  
     driver.quit()
     print("等待上班時間....") 
+    write_log_file("等待上班時間")  
     return check_out_information
              
 if __name__ == '__main__':
@@ -402,6 +579,7 @@ if __name__ == '__main__':
             #usrid= input("請輸入帳號: ")
             usrid= getpass.getpass("請輸入帳號: ")
             password= getpass.getpass("請輸入密碼: ")
+            write_log_file("input usrid password")
             if password=="":
                 pass
             else:
@@ -413,8 +591,10 @@ if __name__ == '__main__':
     try:
         submit_botton = driver.find_element_by_xpath(view_list_botton)
         submit_botton.click()
+        write_log_file("submit_botton 查看本日刷卡紀錄 correct")
     except Exception as e:
-        print(e)      
+        print(e)   
+        write_log_file("submit_botton 查看本日刷卡紀錄 error")
     check_list_arry = check_work_list(driver)
     sleep(1)
     driver.quit()
@@ -429,6 +609,7 @@ if __name__ == '__main__':
             if(date_YMD == holiday[i]):
                 if(today_buffer != today):
                     print("放假日: ",holiday[i])
+                    write_log_file("放假日: " + str(holiday[i]))    
                     text = "放假日: " + holiday[i]
                     line_broadcast(text,LINE)
                 today_buffer = today
@@ -446,8 +627,10 @@ if __name__ == '__main__':
             try:
                 submit_botton = driver.find_element_by_xpath(view_list_botton)
                 submit_botton.click()
+                write_log_file("submit_botton 查看本日刷卡紀錄 correct")
             except Exception as e:
                 print(e)      
+                write_log_file("submit_botton 查看本日刷卡紀錄 error")
             check_list_arry = check_work_list(driver)
             print("check_list_arry:",check_list_arry,"check_list_arry len:", len(check_list_arry),datetime.now().strftime('%Y-%m-%d %H:%M:%S')," 星期", today)
             sleep(1)
@@ -485,17 +668,21 @@ if __name__ == '__main__':
             set_hours = int(set_hours)
             set_hours = "%02d" % set_hours
             check_in_time1 = set_hours +":" + minute +":"+ second
+            
+            write_log_file("下次簽到時間(尚未簽到):" + str(check_in_time1))
+            
             '''
             if((int(datetime.now().strftime("%S")) + 15) > 59):
                 check_in_time1 = datetime.now().strftime("%H") + ":" + str(int(datetime.now().strftime("%M")) + 1) + ":15" 
             else:
                 check_in_time1 = datetime.now().strftime("%H:%M") + ":" + str(int(datetime.now().strftime("%S")) + 15)
-            '''     
+            '''   
             
             #print(datetime.now().strftime('%Y-%m-%d %H:%M:%S')," 星期", today)
             #text = str(datetime.now().strftime('%Y-%m-%d %H:%M:%S')+" 星期"+ today)
             #params = {"message": text}
             #requests.post("https://notify-api.line.me/api/notify",headers=headers, params=params)
+            
             print() 
             print("--------------------------下次簽到時間(尚未簽到):", check_in_time1,"--------------------------")
             #text = str("預計下次簽到時間為: "+ check_in_time1 + "  目前尚未簽到哦！！！！！")
@@ -506,6 +693,11 @@ if __name__ == '__main__':
             while True:
                 date_HMS = datetime.now().strftime("%H:%M:%S")
                 if(date_HMS == check_in_time1 and len(check_list_arry)== 0):#沒上班
+                    write_log_file("沒上班")
+                    #**********************************#
+                    driver2 = open_browser_questionnaire()
+                    questionnaire(driver2)
+                    #**********************************#
                     check_list_arry = check_in_procedure(usrid, password, LINE, NAME)
                     checkin_flag = 1
                 elif(len(check_list_arry) >= 1 and check_out_again_flag == -1 or checkin_flag == 1):#有上班
@@ -517,14 +709,18 @@ if __name__ == '__main__':
                             break  
                     for i in range(len(check_list_arry)):
                         if(check_list_arry[len(check_list_arry)-i-1][2]=='下班'): #有上班+有下班
+                            write_log_file("有上班+有下班")
                             check_out_again_flag = i
                             print("今日已經打過卡，打卡資訊為：")
                             print(check_list_arry[check_out_number])
-                            print(check_list_arry[len(check_list_arry)-i-1])      
+                            print(check_list_arry[len(check_list_arry)-i-1])
+                            write_log_file("今日已經打過卡，打卡資訊為：")
+                            write_log_file(str(check_list_arry[check_out_number])+ "**" +str(check_list_arry[len(check_list_arry)-i-1]))
                             text = str(NAME) + "您好！今日您的打卡的資訊為："
                             line_broadcast(text, LINE)
                             line_broadcast(  str(check_list_arry[check_out_number]),LINE)
                             line_broadcast(  str(check_list_arry[len(check_list_arry)-i-1]),LINE)
+                            
                             #check_list_arry=''
                             today_buffer_flag = 0
                             #print()
@@ -537,6 +733,7 @@ if __name__ == '__main__':
                         break
                     
                     if(check_out_number != -1 and check_out_again_flag == -1): #有上班沒下班的情況
+                        write_log_file("有上班+沒下班")
                         check_out_information = check_out_procedure(check_list_arry, check_out_number, usrid, password, LINE, NAME)
                         #check_list_arry=''
                         today_buffer_flag = 0
